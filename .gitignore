@@ -20,3 +20,8 @@ backup.txt
 # OS
 .DS_Store
 Thumbs.db
+
+# DB test artifacts (adb pull)
+*.db
+*.db-wal
+*.db-shm
