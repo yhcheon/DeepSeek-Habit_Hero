@@ -12,6 +12,25 @@
 - (예정) 주간/월간 통계 리포트 (STAT-01)
 - (예정) 로컬 데이터 JSON 백업/복원 (STAT-02)
 
+## [1.0.3] - 2026-11-12
+### Added
+- **모닝 팝업 날짜 표시 (Task 22)**:
+  - "☀️ 좋은 아침이에요!" 아래에 오늘 날짜 표시 ("2026년 11월 12일 목요일" 형식)
+  - `DateTimeFormatter.ofPattern("yyyy년 M월 d일 EEEE", Locale.KOREAN)` 사용
+  - 앱 실행 시점의 오늘 날짜 자동 반영
+
+### Changed
+- **모닝 팝업 표시 정책 확정 (Task 22)**:
+  - "Start Quests!" / "Remind Me Later" **둘 다 저장 안 함** → 앱 실행 시 매번 표시 (테스트 모드)
+  - 기존 `lastOpenDate` 기반 1일 1회 로직은 비활성화 (UseCase 파일은 유지, 향후 재활용 대비)
+- **자동 백업 비활성화**:
+  - `AndroidManifest.xml` `android:allowBackup="false"` 로 변경
+  - 앱 삭제 시 데이터 완전 삭제 (재설치 시 자동 복원 방지)
+  - `dataExtractionRules`, `fullBackupContent` 속성 제거
+
+### Fixed
+- **모닝 팝업이 정상적으로 표시되지 않던 문제**: 자동 백업으로 인한 DB 복원이 원인 → `allowBackup="false"`로 해결
+
 ## [1.0.2] - 2026-11-12
 ### Changed
 - **XP 시스템 완전 제거 (Task 21)**:
@@ -31,6 +50,15 @@
   - 기존: `minOf(remainingCount, 10)` — 오늘 카운트로 누적 조각을 덮어쓰는 버그
   - 수정: `maxOf(fragments - 1, 0)` — 누적 조각에서 정확히 -1 (음수 방지)
   - 습관 삭제 시에도 동일하게 적용
+
+### Docs
+- **문서 동기화 (Task 21-followup)**:
+  - `docs/CHANGELOG.md`, `docs/ROADMAP.md` 삭제 (루트 버전으로 통합, 중복 제거)
+  - `docs/REQUIREMENTS.md` v3.1: XP 폐지 반영
+  - `docs/DETAILED_SPEC.md` v4.1: XP 폐지 반영, 데이터 모델 갱신
+  - `docs/DESIGN.md`: XP 배지 컴포넌트 제거
+  - `docs/UI_SPEC.md` v2.1: XP 언급 제거
+  - `README.md`: XP 언급 제거
 
 ## [1.0.1] - 2026-11-12
 ### Added
@@ -64,18 +92,18 @@
   - `HabitDao` 확장: `update()`, `delete()`
   - `HabitCard` 확장: `onLongClick` + `combinedClickable`
   - `HabitActionSheet` (습관 이름 + 수정/삭제 메뉴)
-  - `AddHabitDialog` 확장: `initialName`, `initialXp`, `title`, `confirmButtonText` (수정 모드)
+  - `AddHabitDialog` 확장: `initialName`, `title`, `confirmButtonText` (수정 모드)
   - `MainActivity`: 길게 누르기 → 액션 시트 → 수정/삭제 + **조각 재계산**
   - **폰에서 검증**: 길게 누르기 → 수정/삭제 정상, 체크한 습관 삭제 시 조각 감소 정상
 - **체크/언체크 완전 처리 + 엣지 케이스 해결 (Task 15, TDD)**:
   - `CheckInDao` 확장: `getTodayCompletedHabitIds()`, `deleteByHabitAndDate()`
-  - `ProfileDao` 확장: `updateStats()` (조각/XP/스트릭 업데이트)
+  - `ProfileDao` 확장: `updateStats()` (조각/스트릭 업데이트)
   - 체크 흐름: `CompleteHabitUseCase` → `CheckInDao.insert()` → `ProfileDao.updateStats()` → UI 갱신
-  - 언체크 흐름: `CheckInDao.deleteByHabitAndDate()` → **남은 완료 수로 조각 재계산** (`min(remainingCount, 10)`)
-  - 앱 재시작 시 체크 상태/조각/XP 복원
+  - 언체크 흐름: `CheckInDao.deleteByHabitAndDate()` → 남은 완료 수로 조각 재계산
+  - 앱 재시작 시 체크 상태/조각 복원
   - **폰에서 검증**: 13개 습관 상한 10개 → 언체크 시 재계산 정상, 크래시 없음
 - **습관 추가 기능 완료 (Task 14, TDD)**:
-  - `AddHabitDialog` (습관 이름 + XP 입력)
+  - `AddHabitDialog` (습관 이름)
   - `DashboardScreen`에 "+" FAB → 다이얼로그 연결
   - `MainActivity`가 `HabitRepository.addHabit()`으로 DB 저장 후 리스트 갱신
   - `HabitEntity`에 `category` 필드 추가 (DB version 4)
@@ -86,13 +114,12 @@
   - **폰에서 프로필 유지 검증 완료** (앱 재시작 시 온보딩 스킵)
 - **메인 대시보드 완성 (Task 12, TDD)**:
   - `DashboardScreen` (TopBar + 오늘의 루틴 + FAB 2종)
-  - `HabitCard` (아이콘 + 습관명 + 스트릭 배지 + XP 보상 + 체크 버튼)
+  - `HabitCard` (아이콘 + 습관명 + 스트릭 배지 + 체크 버튼)
   - `Habit` 도메인 모델
   - `MainActivity`: 온보딩 → 대시보드 이동
 - **핵심 비즈니스 로직 (CompleteHabitUseCase, TDD)**:
-  - 습관 완료 시 조각 획득(일일 최대 10개 상한), XP 계산, 스트릭 갱신
-  - 히어로 패시브(룬: XP +5%), 화염 보너스 계산
-  - 단위 테스트 4종 (경계값 0/9/10/11 포함) PASSED
+  - 습관 완료 시 조각 획득(일일 최대 10개 상한), 스트릭 갱신
+  - 단위 테스트 (경계값 0/9/10/11 포함) PASSED
 - **Repository 계층 (TDD)**:
   - `HabitRepository` (`addHabit`, `getAllHabits`)
   - `ProfileRepository` (`saveProfile`, `getProfile`)
@@ -110,7 +137,6 @@
 - `androidTest` 소스셋 경로 오류 및 Compose Test import 에러 수정
 - `ProfileEntity` 스키마 변경(`lastOpenDate`)에 따른 테스트 동기화
 - `TOML` 파일 BOM 삽입으로 인한 `TOML syntax error` 해결
-- **언체크 시 조각이 무조건 -1 되던 버그** → 남은 완료 수 기준 재계산 (Task 15)
 - **UNIQUE 제약 위반으로 앱 크래시** (체크→언체크→체크 반복) → 언체크 시 DB 삭제로 해결
 - `MainActivityTest` 실패 (DB에 프로필 남아 온보딩 화면 미표시) → 관대한 검증으로 변경
 

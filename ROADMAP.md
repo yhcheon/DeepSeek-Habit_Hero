@@ -6,7 +6,7 @@
 ## 🔥 High Priority (다음 스프린트 / 즉시 구현)
 
 ### v1.1 후보
-- [ ] **모닝 팝업 (ONB-02) 정식화** — 현재 테스트 모드(매번 표시) → 당일 최초 1회 로직 (`lastOpenDate` 활용)
+- [ ] **모닝 팝업 정식화** — 현재 "매번 표시(테스트 모드)" → "당일 1회" 또는 "Start/Remind 분기" 로직 (`ShouldShowMorningPopupUseCase` 재활용)
 - [ ] **Tier/Rank 성장 UI (RWD-01)** — 진화 애니메이션, 레벨업 연출
 - [ ] **패널티 시스템 (RWD-02)** — 자정 기준 미실천 판정 (조각 -1, Rank -1, 스트릭 리셋)
 - [ ] **스트릭 마일스톤** — 7/14/30일 달성 시 보너스 (XP 폐지로 보상 재정의 필요: 조각 보너스? Tier 가속?)
@@ -17,10 +17,9 @@
 - [ ] **랭킹 화면 (RNK-01)** — 가상 NPC 비교 로컬 랭킹
 - [ ] **HBT-03 스와이프 리스케줄** — 카드 좌우 스와이프
 - [ ] **다국어 (i18n)** — KO/EN 완전 지원
-- [ ] **문서 동기화 부채 정리** — REQUIREMENTS/DETAILED_SPEC/DESIGN의 XP·패시브 잔재 정리
 
 ## 💡 Backlog & Ideas (장기 / 아이디어 단계)
-- [ ] **로컬 백업/복원 (STAT-02)** — JSON export/import (SAF)
+- [ ] **로컬 백업/복원 (STAT-02)** — JSON export/import (SAF). `allowBackup="false"`로 자동 백업 껐으므로 수동 백업 필요
 - [ ] **아바타 의상/커스터마이징** — Tier 진화 시 외형 변화 (Rune=남 / Aria=여 성별 정보 코드 반영 필요)
 - [ ] **Potion 시스템 확장** — 스타터 Potion 용도 정의
 - [ ] **위젯** — Android 홈 화면 (오늘의 퀘스트 요약)
@@ -31,12 +30,18 @@
 
 ## ✅ 완료 (Done)
 
+### v1.0.3 (2026-11-12) — Task 22
+- [x] **모닝 팝업 표시 정책 확정** — Start/Remind 둘 다 저장 안 함 → 앱 실행 시 매번 표시 (테스트 모드)
+- [x] **모닝 팝업 날짜 표시** — "2026년 11월 12일 목요일" 형식
+- [x] **자동 백업 비활성화** — `allowBackup="false"` (앱 삭제 시 완전 삭제, 재설치 시 복원 방지)
+
 ### v1.0.2 (2026-11-12) — Task 21
 - [x] **XP 시스템 완전 제거** — ProfileEntity.xp / HabitEntity.rewardXp / CompleteHabitResult XP 필드 / CompleteHabitUseCase XP 계산 전부 삭제
 - [x] **DB version 4 → 5** — fallbackToDestructiveMigration 유지
 - [x] **언체크 조각 -1 버그 수정** — `minOf(remainingCount, 10)` → `maxOf(fragments - 1, 0)`
 - [x] **히어로 패시브 개념 미도입 확정** — 표시용 문자열만 유지
 - [x] **온보딩 패시브 문구 교체** — XP 언급 제거
+- [x] **문서 동기화 (Task 21-followup)** — docs/ XP 잔재 정리, 중복 CHANGELOG/ROADMAP 제거, README XP 제거
 
 ### v1.0.1 (2026-11-12)
 - [x] **프로필/설정 화면 (PRF-01)** — 닉네임/히어로 변경 (Task 18)
