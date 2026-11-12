@@ -1,0 +1,32 @@
+﻿
+package com.yhcheon.habithero
+
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class MainActivityTest {
+
+    @get:Rule
+    val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Test
+    fun 앱시작시_HabitHero_타이틀이_표시된다() {
+        composeRule.onNodeWithText("Habit Hero").assertIsDisplayed()
+    }
+
+    @Test
+    fun 앱시작시_HelloAndroid_텍스트는_사라진다() {
+        // assertDoesNotExist 대신 onAllNodes + assertCountEquals(0) 사용
+        composeRule.onAllNodesWithText("Hello Android!").assertCountEquals(0)
+    }
+}
+
+
