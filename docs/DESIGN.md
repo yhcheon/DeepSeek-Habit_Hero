@@ -128,10 +128,11 @@
 - **아이콘**: 44dp 정사각형, `rounded-md`, `primary-container` 배경
 - **타이틀**: `headline-sm` (18px, 600)
 - **스트릭 배지**: Pill, `secondary-container` (`#FD761A`), "🔥 14일"
-- **XP 배지**: Pill, `primary-container` (`#2563EB`), "+40 XP"
 - **체크 버튼**: 44dp 원형
   - 미완료: `outline-variant` 테두리
   - 완료: `primary` 채우기 + 흰색 체크
+
+> **Task 21**: XP 배지 컴포넌트 제거됨 (기존 "+40 XP" Pill).
 
 ### 7.2 FAB (플로팅 액션 버튼)
 - **"지금 5분만 하기"**: Extended FAB, `primary-container` (`#2563EB`), 흰색 텍스트
