@@ -17,7 +17,6 @@ class HabitActionSheetTest {
     private val sampleHabit = Habit(
         id = 1,
         name = "물 2L 마시기",
-        rewardXp = 40,
         category = "Health"
     )
 

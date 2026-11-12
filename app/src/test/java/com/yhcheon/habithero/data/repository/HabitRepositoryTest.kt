@@ -33,6 +33,5 @@ class HabitRepositoryTest {
 
         assertEquals(1, habits.size)
         assertEquals("물 2L 마시기", habits[0].name)
-        assertEquals(0, habits[0].rewardXp)  // Task 20: XP=0 저장
     }
 }

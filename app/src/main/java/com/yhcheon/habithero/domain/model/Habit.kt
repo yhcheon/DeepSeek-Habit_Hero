@@ -1,9 +1,10 @@
 ﻿package com.yhcheon.habithero.domain.model
 
+/**
+ * 습관 도메인 모델 (Task 21: rewardXp 제거)
+ */
 data class Habit(
-    val id: Long = 0,
+    val id: Long,
     val name: String,
-    val rewardXp: Int,
-    val category: String = "",
-    val cycle: String = "DAILY"
+    val category: String = ""
 )

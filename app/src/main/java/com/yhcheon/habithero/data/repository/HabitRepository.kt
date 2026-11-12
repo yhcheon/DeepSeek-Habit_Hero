@@ -4,23 +4,20 @@ import com.yhcheon.habithero.data.local.dao.HabitDao
 import com.yhcheon.habithero.data.local.entity.HabitEntity
 
 /**
- * 습관 데이터 Repository
- * - Task 20: XP 폐지에 따라 addHabit(name) 시그니처로 단순화
- * - 내부적으로 rewardXp = 0 저장 (DB 필드는 마이그레이션 회피 위해 유지)
+ * 습관 데이터 Repository (Task 21: XP 필드 제거)
  */
 class HabitRepository(
     private val habitDao: HabitDao
 ) {
     /**
-     * 새 습관을 추가합니다. (XP 미사용)
+     * 새 습관을 추가합니다.
      * @param name 습관 이름
      */
     suspend fun addHabit(name: String) {
         val habit = HabitEntity(
             profileId = 1L,
             name = name,
-            cycle = "DAILY",
-            rewardXp = 0
+            cycle = "DAILY"
         )
         habitDao.insert(habit)
     }

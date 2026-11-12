@@ -7,7 +7,6 @@ import com.yhcheon.habithero.data.local.entity.HabitEntity
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,7 +32,7 @@ class HabitDaoTest {
     @Test
     fun `습관을_추가하면_DB에_저장된다`() = runTest {
         db.habitDao().insert(
-            HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40)
+            HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY")
         )
         val habits = db.habitDao().getAllHabits()
         assertEquals(1, habits.size)
@@ -43,26 +42,25 @@ class HabitDaoTest {
     @Test
     fun `습관을_수정하면_DB에_반영된다`() = runTest {
         db.habitDao().insert(
-            HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40)
+            HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY")
         )
         val habits = db.habitDao().getAllHabits()
         val target = habits[0]
 
-        val updated = target.copy(name = "물 2L 마시기", rewardXp = 50)
+        val updated = target.copy(name = "물 2L 마시기")
         db.habitDao().update(updated)
 
         val reloaded = db.habitDao().getAllHabits()
         assertEquals("물 2L 마시기", reloaded[0].name)
-        assertEquals(50, reloaded[0].rewardXp)
     }
 
     @Test
     fun `습관을_삭제하면_DB에서_제거된다`() = runTest {
         db.habitDao().insert(
-            HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40)
+            HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY")
         )
         db.habitDao().insert(
-            HabitEntity(profileId = 1, name = "독서", cycle = "DAILY", rewardXp = 40)
+            HabitEntity(profileId = 1, name = "독서", cycle = "DAILY")
         )
         val habits = db.habitDao().getAllHabits()
         assertEquals(2, habits.size)

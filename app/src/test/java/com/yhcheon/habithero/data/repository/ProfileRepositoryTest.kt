@@ -23,13 +23,15 @@ class ProfileRepositoryTest {
             insertCallCount++
         }
         override suspend fun getProfile(): ProfileEntity? = profile
-        override suspend fun updateStats(fragments: Int, xp: Int, streak: Int) {
+
+        // Task 21: updateStats(fragments, streak) 시그니처로 변경 (xp 제거)
+        override suspend fun updateStats(fragments: Int, streak: Int) {
             profile = profile?.copy(
                 totalFragments = fragments,
-                xp = xp,
                 streak = streak
             )
         }
+
         override suspend fun updateNickname(nickname: String) {
             profile = profile?.copy(nickname = nickname)
             updateNicknameCallCount++

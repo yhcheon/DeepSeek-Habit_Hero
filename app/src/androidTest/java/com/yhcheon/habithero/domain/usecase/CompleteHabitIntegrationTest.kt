@@ -15,7 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * CompleteHabitUseCase 통합 테스트 (Room in-memory DB)
+ * CompleteHabitUseCase 통합 테스트 (Room in-memory DB) — Task 21: XP 제거
  */
 @RunWith(AndroidJUnit4::class)
 class CompleteHabitIntegrationTest {
@@ -41,29 +41,22 @@ class CompleteHabitIntegrationTest {
 
     @Test
     fun `습관_완료시_결과값이_정상적으로_계산된다`() = runTest {
-        // Given: 습관 1개 + 프로필 초기 상태
         val habit = HabitEntity(
             profileId = 1L,
             name = "물 2L 마시기",
-            cycle = "DAILY",
-            rewardXp = 40
+            cycle = "DAILY"
         )
         db.habitDao().insert(habit)
         profileRepo.saveProfile(nickname = "테스터", hero = "RUNE")
 
-        // When: UseCase 실행
         val result = CompleteHabitUseCase.execute(
             profileFragments = 0,
-            profileXp = 0,
             profileStreak = 0,
-            habitRewardXp = 40,
-            heroPassiveXpRate = 0.0,
             todayFragmentCount = 0
         )
 
-        // Then
         assertEquals(1, result.fragmentEarned)
-        assertEquals(40, result.xpEarned)
         assertEquals(1, result.newStreak)
+        assertEquals(1, result.newTotalFragments)
     }
 }

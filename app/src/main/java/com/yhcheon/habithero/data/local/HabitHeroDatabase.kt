@@ -13,7 +13,7 @@ import com.yhcheon.habithero.data.local.entity.ProfileEntity
 
 @Database(
     entities = [HabitEntity::class, ProfileEntity::class, CheckInEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class HabitHeroDatabase : RoomDatabase() {

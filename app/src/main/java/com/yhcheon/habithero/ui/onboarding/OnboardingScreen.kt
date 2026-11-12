@@ -64,18 +64,18 @@ fun OnboardingScreen(
                 singleLine = true
             )
 
-            // 히어로 카드 2종
+            // 히어로 카드 2종 (Task 21: XP/패시브 문구 제거)
             HeroCard(
                 name = "루키 룬",
                 description = "성실한 열정보이",
-                passive = "집중력 부스트 (+5% XP)",
+                passive = "묵묵히 쌓아가는 성실함",
                 selected = selectedHero == "RUNE",
                 onClick = { selectedHero = "RUNE" }
             )
             HeroCard(
                 name = "스파크 아리아",
                 description = "당찬 긍정소녀",
-                passive = "연속 달성 실드 (+5% 회복력)",
+                passive = "긍정의 에너지로 이어가는 힘",
                 selected = selectedHero == "ARIA",
                 onClick = { selectedHero = "ARIA" }
             )

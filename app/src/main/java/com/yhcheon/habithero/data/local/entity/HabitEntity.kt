@@ -9,6 +9,5 @@ data class HabitEntity(
     val profileId: Long,
     val name: String,
     val cycle: String,
-    val rewardXp: Int,
     val category: String? = null
 )

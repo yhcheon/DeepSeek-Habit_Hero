@@ -61,7 +61,6 @@ private suspend fun loadHabits(habitRepo: HabitRepository): List<Habit> {
         Habit(
             id = it.id,
             name = it.name,
-            rewardXp = it.rewardXp,
             category = it.category ?: ""
         )
     }
@@ -96,7 +95,6 @@ fun HabitHeroApp() {
     var completedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     var habitStreaks by remember { mutableStateOf<Map<Long, Int>>(emptyMap()) }
     var fragments by remember { mutableStateOf(0) }
-    var xp by remember { mutableStateOf(0) }
     var streak by remember { mutableStateOf(0) }
     var tier by remember { mutableStateOf("B") }
     var level by remember { mutableStateOf(0) }
@@ -123,7 +121,6 @@ fun HabitHeroApp() {
             nickname = profile.nickname
             hero = profile.hero
             fragments = profile.totalFragments
-            xp = profile.xp
             streak = profile.streak
             tier = profile.tier
             level = profile.rank
@@ -158,10 +155,7 @@ fun HabitHeroApp() {
                 val todayCount = db.checkInDao().getTodayCheckInCount(today)
                 val result = CompleteHabitUseCase.execute(
                     profileFragments = fragments,
-                    profileXp = xp,
                     profileStreak = streak,
-                    habitRewardXp = 0,
-                    heroPassiveXpRate = 0.0,
                     todayFragmentCount = todayCount
                 )
                 db.checkInDao().insert(
@@ -174,7 +168,6 @@ fun HabitHeroApp() {
                 )
                 db.profileDao().updateStats(
                     fragments = result.newTotalFragments,
-                    xp = result.newXp,
                     streak = result.newStreak
                 )
                 db.profileDao().updateTierRank(
@@ -183,7 +176,6 @@ fun HabitHeroApp() {
                 )
                 completedIds = completedIds + habitId
                 fragments = result.newTotalFragments
-                xp = result.newXp
                 streak = result.newStreak
                 tier = result.newTier
                 level = result.newRank
@@ -324,9 +316,9 @@ fun HabitHeroApp() {
                             val targetHabit = habits.find { it.id == habitId }
                             if (targetHabit != null) {
                                 db.checkInDao().deleteByHabitAndDate(habitId, today)
-                                val remainingCount = db.checkInDao().getTodayCheckInCount(today)
-                                val newFragments = minOf(remainingCount, 10)
-                                db.profileDao().updateStats(fragments = newFragments, xp = xp, streak = streak)
+                                // Task 21: 재계산 버그 수정 — 누적 조각에서 정확히 -1
+                                val newFragments = maxOf(fragments - 1, 0)
+                                db.profileDao().updateStats(fragments = newFragments, streak = streak)
                                 completedIds = completedIds - habitId
                                 fragments = newFragments
                                 habitStreaks = calculateHabitStreaks(db, habits, LocalDate.now())
@@ -388,7 +380,6 @@ fun HabitHeroApp() {
                                     profileId = 1,
                                     name = newName,
                                     cycle = "DAILY",
-                                    rewardXp = 0,
                                     category = target.category
                                 )
                             )
@@ -416,15 +407,13 @@ fun HabitHeroApp() {
                                             profileId = 1,
                                             name = target.name,
                                             cycle = "DAILY",
-                                            rewardXp = 0,
                                             category = target.category
                                         )
                                     )
-                                    val remainingCount = db.checkInDao().getTodayCheckInCount(today)
-                                    val newFragments = minOf(remainingCount, 10)
+                                    // Task 21: 재계산 버그 수정 — 누적 조각에서 정확히 -1
+                                    val newFragments = maxOf(fragments - 1, 0)
                                     db.profileDao().updateStats(
                                         fragments = newFragments,
-                                        xp = xp,
                                         streak = streak
                                     )
                                     fragments = newFragments

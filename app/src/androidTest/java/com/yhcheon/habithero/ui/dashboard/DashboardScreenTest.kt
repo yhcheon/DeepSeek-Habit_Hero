@@ -15,8 +15,8 @@ class DashboardScreenTest {
     val composeRule = createComposeRule()
 
     private val sampleHabits = listOf(
-        Habit(id = 1, name = "물 2L 마시기", rewardXp = 0, category = "Health"),
-        Habit(id = 2, name = "매일 독서", rewardXp = 0, category = "Mind")
+        Habit(id = 1, name = "물 2L 마시기", category = "Health"),
+        Habit(id = 2, name = "매일 독서", category = "Mind")
     )
 
     private fun setDashboardContent(habitStreaks: Map<Long, Int> = emptyMap()) {

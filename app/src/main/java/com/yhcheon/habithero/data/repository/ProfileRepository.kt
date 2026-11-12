@@ -15,7 +15,6 @@ class ProfileRepository(
             tier = "B",
             rank = 0,
             totalFragments = 0,
-            xp = 0,
             streak = 0,
             lastOpenDate = LocalDate.now().toString()
         )

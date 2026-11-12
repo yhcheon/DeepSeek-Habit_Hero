@@ -17,11 +17,10 @@ interface ProfileDao {
     @Query("""
         UPDATE profiles
         SET totalFragments = :fragments,
-            xp = :xp,
             streak = :streak
         WHERE id = 1
     """)
-    suspend fun updateStats(fragments: Int, xp: Int, streak: Int)
+    suspend fun updateStats(fragments: Int, streak: Int)
 
     @Query("UPDATE profiles SET nickname = :nickname WHERE id = 1")
     suspend fun updateNickname(nickname: String)

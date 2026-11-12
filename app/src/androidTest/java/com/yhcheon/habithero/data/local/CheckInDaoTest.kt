@@ -35,8 +35,8 @@ class CheckInDaoTest {
     @Test
     fun `오늘_완료한_습관_ID_목록을_조회한다`() = runTest {
         val today = LocalDate.now().toString()
-        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40))
-        db.habitDao().insert(HabitEntity(profileId = 1, name = "독서", cycle = "DAILY", rewardXp = 40))
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY"))
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "독서", cycle = "DAILY"))
         val habits = db.habitDao().getAllHabits()
 
         db.checkInDao().insert(
@@ -56,7 +56,7 @@ class CheckInDaoTest {
     @Test
     fun `오늘_완료한_습관_개수를_조회한다`() = runTest {
         val today = LocalDate.now().toString()
-        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40))
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY"))
         val habits = db.habitDao().getAllHabits()
 
         db.checkInDao().insert(
@@ -72,15 +72,10 @@ class CheckInDaoTest {
         assertEquals(1, count)
     }
 
-    // ─────────────────────────────────────────────
-    // [Task 20-5a] 습관별 체크인 날짜 조회 테스트
-    // ─────────────────────────────────────────────
-
     @Test
     fun `습관별_체크인_날짜_목록을_조회한다`() = runTest {
-        // Given: 습관 2개, 습관1에만 3일치 체크인
-        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40))
-        db.habitDao().insert(HabitEntity(profileId = 1, name = "독서", cycle = "DAILY", rewardXp = 40))
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY"))
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "독서", cycle = "DAILY"))
         val habits = db.habitDao().getAllHabits()
         val habitId = habits[0].id
 
@@ -88,10 +83,8 @@ class CheckInDaoTest {
         db.checkInDao().insert(CheckInEntity(habitId = habitId, date = "2026-11-11", completedAt = 0, streakAtTime = 2))
         db.checkInDao().insert(CheckInEntity(habitId = habitId, date = "2026-11-12", completedAt = 0, streakAtTime = 3))
 
-        // When
         val dates = db.checkInDao().getCheckedDatesByHabit(habitId)
 
-        // Then
         assertEquals(3, dates.size)
         assertTrue(dates.contains("2026-11-10"))
         assertTrue(dates.contains("2026-11-11"))

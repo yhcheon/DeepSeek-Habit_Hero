@@ -19,14 +19,12 @@ class HabitCardTest {
     private val sampleHabit = Habit(
         id = 1,
         name = "물 2L 마시기",
-        rewardXp = 40,
         category = "Health"
     )
 
     private val longNameHabit = Habit(
         id = 2,
         name = "습관 이름이 엄청 길면 어떻게 될까요 이건 테스트 습관입니다 여러 줄에 걸쳐서 어떻게 나올까요",
-        rewardXp = 40,
         category = "Test"
     )
 
@@ -91,10 +89,6 @@ class HabitCardTest {
         assertTrue("길게 누르기 콜백이 호출되지 않음", longClicked)
     }
 
-    // ─────────────────────────────────────────────
-    // [Task 20-5d] 긴 이름 축약 + 배지 표시
-    // ─────────────────────────────────────────────
-
     @Test
     fun `긴_습관_이름일_때도_연속일_배지가_표시된다`() {
         composeRule.setContent {
@@ -120,8 +114,6 @@ class HabitCardTest {
                 onLongClick = {}
             )
         }
-        // 습관 이름 노드가 1줄(maxLines=1)이므로 텍스트가 있어도 카드가 과도하게 커지지 않음
-        // 텍스트 존재 자체는 substring으로 확인 가능
         composeRule.onNodeWithText("습관 이름이 엄청 길면", substring = true).assertIsDisplayed()
     }
 }
