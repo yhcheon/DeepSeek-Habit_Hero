@@ -20,7 +20,7 @@ class ProfileRepository(
         val profile = ProfileEntity(
             id = 1L,
             nickname = nickname,
-            hero = hero,          // "RUNE" 또는 "ARIA"
+            hero = hero,
             tier = "B",
             rank = 0,
             totalFragments = 0,
@@ -53,11 +53,20 @@ class ProfileRepository(
      * 히어로를 변경합니다. (PRF-01)
      * - 빈 문자열은 무시 (저장 안 함)
      * - 프로필이 없으면 무시
-     * - 유효 값: "RUNE" / "ARIA"
      */
     suspend fun updateHero(hero: String) {
         if (hero.isBlank()) return
         if (profileDao.getProfile() == null) return
         profileDao.updateHero(hero)
+    }
+
+    /**
+     * 오늘 날짜를 lastOpenDate로 기록합니다. (ONB-02)
+     * - 프로필이 없으면 무시
+     * - 명시적 today 전달 (테스트 용이성)
+     */
+    suspend fun markTodayOpened(today: LocalDate = LocalDate.now()) {
+        if (profileDao.getProfile() == null) return
+        profileDao.updateLastOpenDate(today.toString())
     }
 }

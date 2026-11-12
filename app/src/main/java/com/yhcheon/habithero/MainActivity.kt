@@ -29,10 +29,12 @@ import com.yhcheon.habithero.data.repository.HabitRepository
 import com.yhcheon.habithero.data.repository.ProfileRepository
 import com.yhcheon.habithero.domain.model.Habit
 import com.yhcheon.habithero.domain.usecase.CompleteHabitUseCase
+import com.yhcheon.habithero.domain.usecase.ShouldShowMorningPopupUseCase
 import com.yhcheon.habithero.ui.celebration.CelebrationScreen
 import com.yhcheon.habithero.ui.components.AddHabitDialog
 import com.yhcheon.habithero.ui.components.HabitActionSheet
 import com.yhcheon.habithero.ui.dashboard.DashboardScreen
+import com.yhcheon.habithero.ui.morning.MorningPopupScreen
 import com.yhcheon.habithero.ui.onboarding.OnboardingScreen
 import com.yhcheon.habithero.ui.profile.ProfileScreen
 import com.yhcheon.habithero.ui.theme.HabitHeroTheme
@@ -91,6 +93,7 @@ fun HabitHeroApp() {
 
     // ─── 화면 전환 상태 ───
     var showProfile by remember { mutableStateOf(false) }
+    var showMorningPopup by remember { mutableStateOf(false) }
 
     // ─── 즉석 습관 + 타이머 상태 ───
     var showQuickHabitDialog by remember { mutableStateOf(false) }
@@ -111,6 +114,18 @@ fun HabitHeroApp() {
             tier = profile.tier
             level = profile.rank
             onboardingCompleted = true
+
+            // ─────────────────────────────────────────────
+            // [테스트 모드] 앱 실행 시마다 팝업 표시
+            // 향후 "하루 1회" 복원 시 아래 주석 해제 + 위 showMorningPopup = true 제거
+            // showMorningPopup = ShouldShowMorningPopupUseCase.execute(
+            //     lastOpenDate = profile.lastOpenDate,
+            //     today = LocalDate.now()
+            // )
+            // ─────────────────────────────────────────────
+            @Suppress("UNUSED_EXPRESSION")
+            ShouldShowMorningPopupUseCase
+            showMorningPopup = true
         }
         isLoading = false
     }
@@ -161,6 +176,14 @@ fun HabitHeroApp() {
         }
     }
 
+    fun dismissMorningPopup() {
+        scope.launch {
+            // 테스트 모드에서도 markTodayOpened는 호출 (DB 기록 유지, 향후 복원 대비)
+            profileRepo.markTodayOpened(LocalDate.now())
+            showMorningPopup = false
+        }
+    }
+
     when {
         isLoading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -175,8 +198,22 @@ fun HabitHeroApp() {
                         nickname = inputNickname
                         hero = inputHero
                         onboardingCompleted = true
+                        // 온보딩 직후엔 팝업 안 띄움 (테스트 모드에서도 동일)
+                        showMorningPopup = false
                     }
                 }
+            )
+        }
+        showMorningPopup -> {
+            MorningPopupScreen(
+                nickname = nickname,
+                tier = tier,
+                rank = level,
+                fragments = fragments,
+                fragmentCap = 10,
+                streak = streak,
+                onStart = { dismissMorningPopup() },
+                onRemindLater = { dismissMorningPopup() }
             )
         }
         showCelebration -> {

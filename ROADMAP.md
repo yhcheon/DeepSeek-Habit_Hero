@@ -7,8 +7,9 @@
 
 ### v1.1 후보
 - [x] **프로필/설정 화면 (PRF-01)** — 히어로 변경, 닉네임 변경 (Task 18 완료)
+- [x] **모닝 팝업 (ONB-02)** — 응원 카드 + 요약 + CTA (Task 19 완료, 테스트 모드: 매번 표시)
+- [ ] **모닝 팝업 "하루 1회" 복원** — `ShouldShowMorningPopupUseCase` 연결 (한 줄 교체)
 - [ ] **프로필 화면에 백업/복원 진입점 추가** — STAT-02 완료 시 연결
-- [ ] **모닝 팝업 (ONB-02)** — 당일 첫 진입 시 1회 응원 카드
 - [ ] **Tier/Rank 성장 UI (RWD-01)** — 진화 애니메이션, 레벨업 연출
 - [ ] **패널티 시스템 (RWD-02)** — 자정 기준 미실천 판정 (조각 -1, Rank -1, 스트릭 리셋)
 - [ ] **스트릭 마일스톤** — 7/14/30일 화염 보너스 XP
@@ -34,7 +35,15 @@
 
 ## ✅ 완료 (Done)
 
-### v1.1 — PRF-01 (2026-11-12, Task 18)
+### v1.1 — ONB-02 모닝 팝업 (2026-11-12, Task 19)
+- [x] **ShouldShowMorningPopupUseCase**: lastOpenDate vs 오늘 비교 순수 함수 + 경계값 테스트 6개
+- [x] **ProfileDao/Repository**: `updateLastOpenDate()` / `markTodayOpened()` 추가
+- [x] **MorningPopupScreen UI**: 아바타 + Tier/Rank + 응원 + 진행 바(rank/100) + 요약 2열 + CTA 2개 + Compose 테스트 3개
+- [x] **MainActivity 연결**: 완전 재실행 시 팝업 → CTA/Remind → `lastOpenDate = 오늘` 저장 → 대시보드
+- [x] **테스트 모드**: 매번 팝업 표시 (한 줄 복원 가능)
+- [x] **폰 수동 검증**: 완전 재실행 시 팝업 / 백그라운드 복귀 시 팝업 안 뜸 (의도)
+
+### v1.1 — PRF-01 프로필/설정 (2026-11-12, Task 18)
 - [x] **ProfileDao**: `updateNickname()`, `updateHero()` 추가 + 테스트 5개
 - [x] **ProfileRepository**: `updateNickname()`, `updateHero()` 위임 (빈 문자열/프로필 없음 방어) + 경계값 테스트
 - [x] **ProfileScreen UI**: 닉네임 입력(1~20자) + 히어로 카드 2종 + 저장/뒤로가기 + Compose 테스트 4개

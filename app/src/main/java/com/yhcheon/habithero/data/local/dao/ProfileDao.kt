@@ -37,4 +37,10 @@ interface ProfileDao {
      */
     @Query("UPDATE profiles SET hero = :hero WHERE id = 1")
     suspend fun updateHero(hero: String)
+
+    /**
+     * 마지막 접속일 업데이트 (ONB-02, YYYY-MM-DD)
+     */
+    @Query("UPDATE profiles SET lastOpenDate = :date WHERE id = 1")
+    suspend fun updateLastOpenDate(date: String)
 }

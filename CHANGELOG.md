@@ -6,13 +6,19 @@
 
 ## [Unreleased]
 ### Added
+- **모닝 팝업 (ONB-02)**: 앱 실행 시 응원 카드 표시 (현재 테스트 모드 — 매번 표시)
+  - `MorningPopupScreen`: 아바타 + Tier/Rank + 응원 문구 + Rank 진행 바(rank/100) + 오늘의 조각/연속 달성 요약 + CTA 2개
+  - `ShouldShowMorningPopupUseCase`: lastOpenDate vs 오늘 비교 순수 함수 (경계값 6개 테스트)
+  - `ProfileDao.updateLastOpenDate()` + `ProfileRepository.markTodayOpened()` 추가
+  - MainActivity: 완전 재실행 시 팝업 표시 → CTA/Remind 시 `lastOpenDate = 오늘` 저장 후 대시보드
+  - **테스트 모드**: 앱 완전 재실행 시마다 팝업 표시 (향후 "하루 1회"로 한 줄 복원 가능)
+  - 백그라운드 복귀 시 팝업 안 뜸 (의도된 동작 — 완전 재실행 시에만)
 - **프로필/설정 화면 (PRF-01)**: 닉네임 변경 + 히어로(RUNE/ARIA) 변경 + 재시작 유지
   - `ProfileScreen`: 닉네임 입력 필드(1~20자 검증) + 히어로 카드 2종 선택
   - 대시보드 App Bar 설정 아이콘 → 프로필 화면 진입
   - `ProfileDao.updateNickname()`, `ProfileDao.updateHero()` 추가
   - `ProfileRepository.updateNickname()`, `ProfileRepository.updateHero()` 위임 메서드 (빈 문자열/프로필 없음 방어)
   - 저장 후 앱 재시작 시 변경 사항 유지 검증 완료
-- (예정) 모닝 팝업 (ONB-02) — 당일 첫 진입 시 응원 카드
 - (예정) 스트릭 마일스톤 (7/14/30일 화염 보너스 XP)
 - (예정) 주간/월간 통계 리포트 (STAT-01)
 - (예정) 로컬 데이터 JSON 백업/복원 (STAT-02)
@@ -87,6 +93,7 @@
 - **언체크 시 조각이 무조건 -1 되던 버그** → 남은 완료 수 기준 재계산
 - **UNIQUE 제약 위반으로 앱 크래시** (체크→언체크→체크 반복) → 언체크 시 DB 삭제로 해결
 - `MainActivityTest` 실패 (DB에 프로필 남아 온보딩 화면 미표시) → 관대한 검증으로 변경
+- **모닝 팝업 테스트에서 "히어로" 문구 중복 매칭** → testTag 기반으로 노드 특정
 
 ## [0.1.0] - 2026-11-11
 ### Added
