@@ -78,4 +78,72 @@ class ProfileDaoTest {
         assertEquals(200, loaded?.xp)
         assertEquals(3, loaded?.streak)
     }
+
+    // ─────────────────────────────────────────────
+    // [Task 18-1] updateNickname / updateHero 테스트
+    // ─────────────────────────────────────────────
+
+    @Test
+    fun `updateNickname_은_닉네임만_변경하고_나머지_필드는_유지한다`() = runTest {
+        // Given: 초기 프로필 (모든 필드에 서로 다른 값)
+        db.profileDao().insert(
+            ProfileEntity(
+                id = 1,
+                nickname = "기존닉",
+                hero = "RUNE",
+                tier = "B",
+                rank = 5,
+                totalFragments = 3,
+                xp = 120,
+                streak = 2,
+                lastOpenDate = "2026-11-12"
+            )
+        )
+
+        // When
+        db.profileDao().updateNickname("새닉네임")
+
+        // Then: 닉네임만 변경, 나머지 유지
+        val updated = db.profileDao().getProfile()
+        assertEquals("새닉네임", updated?.nickname)
+        assertEquals("RUNE", updated?.hero)
+        assertEquals(5, updated?.rank)
+        assertEquals(3, updated?.totalFragments)
+        assertEquals(120, updated?.xp)
+        assertEquals(2, updated?.streak)
+    }
+
+    @Test
+    fun `updateHero_은_히어로만_변경하고_나머지_필드는_유지한다`() = runTest {
+        // Given
+        db.profileDao().insert(
+            ProfileEntity(
+                id = 1,
+                nickname = "닉",
+                hero = "RUNE",
+                tier = "B",
+                rank = 0,
+                totalFragments = 0,
+                xp = 0,
+                streak = 0,
+                lastOpenDate = "2026-11-12"
+            )
+        )
+
+        // When
+        db.profileDao().updateHero("ARIA")
+
+        // Then: 히어로만 변경, 닉네임 유지
+        val updated = db.profileDao().getProfile()
+        assertEquals("ARIA", updated?.hero)
+        assertEquals("닉", updated?.nickname)
+    }
+
+    @Test
+    fun `updateNickname_은_프로필이_없어도_예외를_던지지_않는다`() = runTest {
+        // Given: 프로필 없음 (insert 안 함)
+
+        // When / Then: 예외 없이 통과
+        db.profileDao().updateNickname("아무나")
+    }
 }

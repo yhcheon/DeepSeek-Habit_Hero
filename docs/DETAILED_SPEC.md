@@ -88,3 +88,38 @@ UI 시안(국/영문) 전면 반영. XP/조각/랭크/스트릭/패시브/스와
 
 
 
+
+## 설계 문서 — PRF-01 프로필/설정 화면 (A안)
+
+- 목표: 닉네임/히어로를 변경하고 로컬 DB에 영속화. 앱 재시작 후 유지.
+- 범위 (In):
+    - ProfileScreen 신규 (닉네임 편집, 히어로 카드 2종 선택, 저장)
+    - DashboardScreen.onSettingsClick → ProfileScreen 진입 (TODO 채우기)
+    - ProfileDao에 updateNickname/updateHero 추가
+    - ProfileRepository에 위임 메서드 추가
+    - 재시작 유지 검증
+- 범위 (Out): 패시브 계산 반영(Q2 대기), 백업/복원(STAT-02), Tier 진화 UI(RWD-01)
+- 아키텍처: 기존 패턴 유지. ViewModel 도입 안 함. MainActivity의 remember 상태 + 콜백.
+    - 화면 전환: when 분기에 `showProfile` 상태 추가 (기존 showTimer/showCelebration과 동일 패턴)
+- 기각 대안:
+    - 별도 SettingsScreen 분리 → v1.1 탭 구조 도입 시 재검토 (현재 과설계)
+    - Navigation Compose 도입 → 현재 when 분기로 충분, 도입은 4탭 작업 시 일괄
+- 파일 구조:
+    - ui/profile/ProfileScreen.kt (신규)
+    - ui/profile/HeroOptionCard.kt (신규, 필요 시 OnboardingScreen 카드 로직 재사용 검토)
+    - data/local/dao/ProfileDao.kt (UPDATE @Query 2개 추가)
+    - data/repository/ProfileRepository.kt (updateNickname, updateHero)
+    - MainActivity.kt (showProfile 상태 + onSettingsClick 연결 + 저장 콜백)
+    - test/data/repository/ProfileRepositoryTest.kt (확장)
+    - androidTest/ui/profile/ProfileScreenTest.kt (신규)
+    - androidTest/data/local/ProfileDaoTest.kt (확장)
+- 엣지 케이스:
+    - 닉네임 공백/1자 미만 → 저장 버튼 비활성
+    - 닉네임 최대 길이 (온보딩 규칙 확인 필요 — 미확인이면 20자 제한 적용)
+    - 히어로 미변경(동일 선택) → DB write 생략
+    - 저장 중 예외 → 스낵바 (기존 패턴에 스낵바 없으면 Toast)
+    - 프로필 null (온보딩 미완료) → ProfileScreen 진입 자체가 불가(대시보드에서만 진입)
+- 검증 방법:
+    - 단위: ProfileRepositoryTest (updateNickname/updateHero 경계값)
+    - UI: ProfileScreenTest (입력→저장 콜백, 버튼 비활성 조건)
+    - 폰: 설정 진입 → 닉네임/히어로 변경 → 저장 → 재시작 → 대시보드 반영 확인

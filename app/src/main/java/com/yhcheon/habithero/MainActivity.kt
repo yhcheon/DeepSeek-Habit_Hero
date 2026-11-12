@@ -34,6 +34,7 @@ import com.yhcheon.habithero.ui.components.AddHabitDialog
 import com.yhcheon.habithero.ui.components.HabitActionSheet
 import com.yhcheon.habithero.ui.dashboard.DashboardScreen
 import com.yhcheon.habithero.ui.onboarding.OnboardingScreen
+import com.yhcheon.habithero.ui.profile.ProfileScreen
 import com.yhcheon.habithero.ui.theme.HabitHeroTheme
 import com.yhcheon.habithero.ui.timer.TimerContainer
 import kotlinx.coroutines.launch
@@ -74,6 +75,7 @@ fun HabitHeroApp() {
 
     var isLoading by remember { mutableStateOf(true) }
     var nickname by remember { mutableStateOf("") }
+    var hero by remember { mutableStateOf("RUNE") }
     var onboardingCompleted by remember { mutableStateOf(false) }
     var habits by remember { mutableStateOf<List<Habit>>(emptyList()) }
     var completedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
@@ -87,6 +89,9 @@ fun HabitHeroApp() {
     var editTarget by remember { mutableStateOf<Habit?>(null) }
     var deleteTarget by remember { mutableStateOf<Habit?>(null) }
 
+    // ─── 화면 전환 상태 ───
+    var showProfile by remember { mutableStateOf(false) }
+
     // ─── 즉석 습관 + 타이머 상태 ───
     var showQuickHabitDialog by remember { mutableStateOf(false) }
     var pendingHabitName by remember { mutableStateOf("") }
@@ -99,6 +104,7 @@ fun HabitHeroApp() {
         val profile = profileRepo.getProfile()
         if (profile != null) {
             nickname = profile.nickname
+            hero = profile.hero
             fragments = profile.totalFragments
             xp = profile.xp
             streak = profile.streak
@@ -167,6 +173,7 @@ fun HabitHeroApp() {
                     scope.launch {
                         profileRepo.saveProfile(inputNickname, inputHero)
                         nickname = inputNickname
+                        hero = inputHero
                         onboardingCompleted = true
                     }
                 }
@@ -188,22 +195,16 @@ fun HabitHeroApp() {
             TimerContainer(
                 initialSeconds = 300,
                 onGiveUp = {
-                    // 포기: 아무것도 저장 안 함
                     showTimer = false
                     pendingHabitName = ""
                     pendingHabitXp = 0
                 },
                 onComplete = {
-                    // 5분 완주 + 완료 클릭
                     scope.launch {
-                        // 1) 습관 DB 저장
                         habitRepo.addHabit(pendingHabitName, pendingHabitXp)
-                        // 2) 최신 습관 목록 갱신
                         habits = loadHabits(db, habitRepo)
-                        // 3) 방금 등록한 습관 ID 찾기 (마지막 ID)
                         val newHabit = habits.lastOrNull()
                         if (newHabit != null) {
-                            // 4) 체크 + 조각 +1
                             completeHabit(newHabit.id) { earned ->
                                 lastEarnedFragments = earned
                                 showTimer = false
@@ -216,6 +217,22 @@ fun HabitHeroApp() {
                 }
             )
         }
+        showProfile -> {
+            ProfileScreen(
+                initialNickname = nickname,
+                initialHero = hero,
+                onSave = { newNickname, newHero ->
+                    scope.launch {
+                        profileRepo.updateNickname(newNickname)
+                        profileRepo.updateHero(newHero)
+                        nickname = newNickname
+                        hero = newHero
+                        showProfile = false
+                    }
+                },
+                onBack = { showProfile = false }
+            )
+        }
         else -> {
             DashboardScreen(
                 nickname = nickname,
@@ -225,8 +242,8 @@ fun HabitHeroApp() {
                 fragmentCap = 10,
                 habits = habits,
                 completedHabitIds = completedIds,
-                onSettingsClick = { /* TODO */ },
-                onStartTimerClick = { showQuickHabitDialog = true },  // ← 즉석 등록 다이얼로그
+                onSettingsClick = { showProfile = true },
+                onStartTimerClick = { showQuickHabitDialog = true },
                 onAddHabit = { name, xpInput ->
                     scope.launch {
                         habitRepo.addHabit(name, xpInput)
@@ -258,7 +275,6 @@ fun HabitHeroApp() {
                 }
             )
 
-            // ─── 즉석 등록 다이얼로그 ───
             if (showQuickHabitDialog) {
                 AddHabitDialog(
                     title = "지금 5분만 하기",
@@ -273,7 +289,6 @@ fun HabitHeroApp() {
                 )
             }
 
-            // ─── 액션 시트 ───
             actionTarget?.let { target ->
                 HabitActionSheet(
                     habit = target,
@@ -289,7 +304,6 @@ fun HabitHeroApp() {
                 )
             }
 
-            // ─── 수정 다이얼로그 ───
             editTarget?.let { target ->
                 AddHabitDialog(
                     initialName = target.name,
@@ -316,7 +330,6 @@ fun HabitHeroApp() {
                 )
             }
 
-            // ─── 삭제 확인 ───
             deleteTarget?.let { target ->
                 AlertDialog(
                     onDismissRequest = { deleteTarget = null },

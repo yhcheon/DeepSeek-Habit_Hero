@@ -15,6 +15,13 @@ class HabitRepositoryTest {
             habits.add(habit.copy(id = habits.size + 1L))
         }
         override suspend fun getAllHabits(): List<HabitEntity> = habits.toList()
+        override suspend fun update(habit: HabitEntity) {
+            val idx = habits.indexOfFirst { it.id == habit.id }
+            if (idx >= 0) habits[idx] = habit
+        }
+        override suspend fun delete(habit: HabitEntity) {
+            habits.removeAll { it.id == habit.id }
+        }
     }
 
     @Test

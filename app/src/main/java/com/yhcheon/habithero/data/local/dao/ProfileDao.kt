@@ -18,11 +18,23 @@ interface ProfileDao {
      * 프로필 통계 업데이트 (조각 / XP / 스트릭)
      */
     @Query("""
-        UPDATE profiles 
+        UPDATE profiles
         SET totalFragments = :fragments,
             xp = :xp,
             streak = :streak
         WHERE id = 1
     """)
     suspend fun updateStats(fragments: Int, xp: Int, streak: Int)
+
+    /**
+     * 닉네임만 업데이트 (PRF-01)
+     */
+    @Query("UPDATE profiles SET nickname = :nickname WHERE id = 1")
+    suspend fun updateNickname(nickname: String)
+
+    /**
+     * 히어로만 업데이트 (PRF-01, "RUNE" / "ARIA")
+     */
+    @Query("UPDATE profiles SET hero = :hero WHERE id = 1")
+    suspend fun updateHero(hero: String)
 }

@@ -37,4 +37,27 @@ class ProfileRepository(
     suspend fun getProfile(): ProfileEntity? {
         return profileDao.getProfile()
     }
+
+    /**
+     * 닉네임을 변경합니다. (PRF-01)
+     * - 빈 문자열은 무시 (저장 안 함)
+     * - 프로필이 없으면 무시
+     */
+    suspend fun updateNickname(nickname: String) {
+        if (nickname.isBlank()) return
+        if (profileDao.getProfile() == null) return
+        profileDao.updateNickname(nickname)
+    }
+
+    /**
+     * 히어로를 변경합니다. (PRF-01)
+     * - 빈 문자열은 무시 (저장 안 함)
+     * - 프로필이 없으면 무시
+     * - 유효 값: "RUNE" / "ARIA"
+     */
+    suspend fun updateHero(hero: String) {
+        if (hero.isBlank()) return
+        if (profileDao.getProfile() == null) return
+        profileDao.updateHero(hero)
+    }
 }
