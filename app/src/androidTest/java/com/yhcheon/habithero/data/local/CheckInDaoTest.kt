@@ -34,13 +34,11 @@ class CheckInDaoTest {
 
     @Test
     fun `오늘_완료한_습관_ID_목록을_조회한다`() = runTest {
-        // Given: 습관 2개 추가
         val today = LocalDate.now().toString()
         db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40))
         db.habitDao().insert(HabitEntity(profileId = 1, name = "독서", cycle = "DAILY", rewardXp = 40))
         val habits = db.habitDao().getAllHabits()
 
-        // When: 습관 1번만 오늘 완료
         db.checkInDao().insert(
             CheckInEntity(
                 habitId = habits[0].id,
@@ -50,7 +48,6 @@ class CheckInDaoTest {
             )
         )
 
-        // Then: 오늘 완료한 습관 ID 목록에 1개만
         val completedIds = db.checkInDao().getTodayCompletedHabitIds(today)
         assertEquals(1, completedIds.size)
         assertTrue(completedIds.contains(habits[0].id))
@@ -73,5 +70,31 @@ class CheckInDaoTest {
 
         val count = db.checkInDao().getTodayCheckInCount(today)
         assertEquals(1, count)
+    }
+
+    // ─────────────────────────────────────────────
+    // [Task 20-5a] 습관별 체크인 날짜 조회 테스트
+    // ─────────────────────────────────────────────
+
+    @Test
+    fun `습관별_체크인_날짜_목록을_조회한다`() = runTest {
+        // Given: 습관 2개, 습관1에만 3일치 체크인
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "물 마시기", cycle = "DAILY", rewardXp = 40))
+        db.habitDao().insert(HabitEntity(profileId = 1, name = "독서", cycle = "DAILY", rewardXp = 40))
+        val habits = db.habitDao().getAllHabits()
+        val habitId = habits[0].id
+
+        db.checkInDao().insert(CheckInEntity(habitId = habitId, date = "2026-11-10", completedAt = 0, streakAtTime = 1))
+        db.checkInDao().insert(CheckInEntity(habitId = habitId, date = "2026-11-11", completedAt = 0, streakAtTime = 2))
+        db.checkInDao().insert(CheckInEntity(habitId = habitId, date = "2026-11-12", completedAt = 0, streakAtTime = 3))
+
+        // When
+        val dates = db.checkInDao().getCheckedDatesByHabit(habitId)
+
+        // Then
+        assertEquals(3, dates.size)
+        assertTrue(dates.contains("2026-11-10"))
+        assertTrue(dates.contains("2026-11-11"))
+        assertTrue(dates.contains("2026-11-12"))
     }
 }

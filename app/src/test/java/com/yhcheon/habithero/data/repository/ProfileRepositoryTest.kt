@@ -10,13 +10,13 @@ import java.time.LocalDate
 
 class ProfileRepositoryTest {
 
-    // 테스트용 가짜 DAO
     private class FakeProfileDao : ProfileDao {
         private var profile: ProfileEntity? = null
         var insertCallCount = 0
         var updateNicknameCallCount = 0
         var updateHeroCallCount = 0
         var lastOpenDateCallCount = 0
+        var updateTierRankCallCount = 0
 
         override suspend fun insert(profile: ProfileEntity) {
             this.profile = profile
@@ -41,6 +41,10 @@ class ProfileRepositoryTest {
         override suspend fun updateLastOpenDate(date: String) {
             profile = profile?.copy(lastOpenDate = date)
             lastOpenDateCallCount++
+        }
+        override suspend fun updateTierRank(tier: String, rank: Int) {
+            profile = profile?.copy(tier = tier, rank = rank)
+            updateTierRankCallCount++
         }
     }
 
@@ -157,23 +161,18 @@ class ProfileRepositoryTest {
         assertEquals(0, fakeDao.updateHeroCallCount)
     }
 
-    // ─────────────────────────────────────────────
-    // [Task 19-2] markTodayOpened 테스트
-    // ─────────────────────────────────────────────
-
     @Test
     fun `markTodayOpened_는_lastOpenDate를_오늘로_갱신한다`() = runTest {
         val fakeDao = FakeProfileDao()
         val repository = ProfileRepository(fakeDao)
         repository.saveProfile("닉", "RUNE")
-        // saveProfile에서 lastOpenDate는 오늘로 설정되지만, 검증을 위해 과거로 되돌림
         fakeDao.updateLastOpenDate("2026-11-01")
 
         val today = LocalDate.of(2026, 11, 12)
         repository.markTodayOpened(today)
 
         assertEquals("2026-11-12", repository.getProfile()?.lastOpenDate)
-        assertEquals(2, fakeDao.lastOpenDateCallCount) // 과거 복원 1 + markTodayOpened 1
+        assertEquals(2, fakeDao.lastOpenDateCallCount)
     }
 
     @Test
@@ -185,5 +184,24 @@ class ProfileRepositoryTest {
 
         assertNull(repository.getProfile())
         assertEquals(0, fakeDao.lastOpenDateCallCount)
+    }
+
+    // ─────────────────────────────────────────────
+    // [Task 20-5c] updateTierRank 위임 테스트
+    // ─────────────────────────────────────────────
+
+    @Test
+    fun `updateTierRank_는_기존_프로필의_tier와_rank를_변경한다`() = runTest {
+        val fakeDao = FakeProfileDao()
+        val repository = ProfileRepository(fakeDao)
+        repository.saveProfile("닉", "RUNE")
+        assertEquals("B", repository.getProfile()?.tier)
+        assertEquals(0, repository.getProfile()?.rank)
+
+        repository.updateTierRank("A", 0)
+
+        assertEquals("A", repository.getProfile()?.tier)
+        assertEquals(0, repository.getProfile()?.rank)
+        assertEquals(1, fakeDao.updateTierRankCallCount)
     }
 }

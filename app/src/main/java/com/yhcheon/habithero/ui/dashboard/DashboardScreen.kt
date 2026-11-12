@@ -33,9 +33,10 @@ fun DashboardScreen(
     completedHabitIds: Set<Long>,
     onSettingsClick: () -> Unit,
     onStartTimerClick: () -> Unit,
-    onAddHabit: (name: String, xp: Int) -> Unit,
+    onAddHabit: (name: String) -> Unit,
     onToggleHabit: (habitId: Long) -> Unit,
-    onHabitLongClick: (habitId: Long) -> Unit = {}  // ← 추가
+    habitStreaks: Map<Long, Int> = emptyMap(),
+    onHabitLongClick: (habitId: Long) -> Unit = {}
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -144,10 +145,10 @@ fun DashboardScreen(
                 habits.forEach { habit ->
                     HabitCard(
                         habit = habit,
-                        streak = 14,
+                        streak = habitStreaks[habit.id] ?: 0,
                         isCompleted = habit.id in completedHabitIds,
                         onToggle = { onToggleHabit(habit.id) },
-                        onLongClick = { onHabitLongClick(habit.id) }  // ← 추가
+                        onLongClick = { onHabitLongClick(habit.id) }
                     )
                 }
             }
@@ -159,8 +160,8 @@ fun DashboardScreen(
     if (showAddDialog) {
         AddHabitDialog(
             onDismiss = { showAddDialog = false },
-            onConfirm = { name, xp ->
-                onAddHabit(name, xp)
+            onConfirm = { name ->
+                onAddHabit(name)
                 showAddDialog = false
             }
         )

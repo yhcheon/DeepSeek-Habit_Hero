@@ -15,13 +15,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yhcheon.habithero.domain.model.Habit
 
 /**
- * 습관 카드 컴포넌트 (HBT-02, HBT-03)
- * - 아이콘 + 습관명 + 스트릭 배지 + XP 보상 배지 + 체크 버튼
- * - 카드 길게 누르기 → onLongClick (수정/삭제 메뉴용)
+ * 습관 카드 컴포넌트 (HBT-02, HBT-03, Task 20 개편)
+ * - 1줄: 아이콘 + 습관명(1줄 축약) + 체크 버튼
+ * - 2줄: 🔥 N일 배지 + 카테고리
+ * - XP 배지 제거 (Task 20: XP 미사용)
  */
 @Composable
 fun HabitCard(
@@ -50,7 +52,7 @@ fun HabitCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 아이콘 자리
+            // 아이콘
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -63,16 +65,20 @@ fun HabitCard(
 
             Spacer(Modifier.width(12.dp))
 
-            // 습관 정보
+            // 습관 정보 (이름 + 배지/카테고리)
             Column(modifier = Modifier.weight(1f)) {
+                // 1줄: 습관명 (1줄 축약)
+                Text(
+                    text = habit.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                )
+                Spacer(Modifier.height(4.dp))
+                // 2줄: 배지 + 카테고리
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = habit.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                    )
-                    Spacer(Modifier.width(8.dp))
                     Surface(
                         shape = RoundedCornerShape(50),
                         color = MaterialTheme.colorScheme.tertiaryContainer
@@ -81,34 +87,25 @@ fun HabitCard(
                             text = "🔥 ${streak}일",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                .testTag("habitCard_streak_${habit.id}")
                         )
                     }
-                }
-                Spacer(Modifier.height(4.dp))
-                Row {
                     if (habit.category.isNotEmpty()) {
+                        Spacer(Modifier.width(8.dp))
                         Text(
                             text = habit.category,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.width(8.dp))
-                    }
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Text(
-                            text = "+${habit.rewardXp} XP",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
             }
+
+            Spacer(Modifier.width(8.dp))
 
             // 체크 버튼
             IconButton(

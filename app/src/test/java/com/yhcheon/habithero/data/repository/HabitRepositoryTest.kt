@@ -8,7 +8,6 @@ import org.junit.Test
 
 class HabitRepositoryTest {
 
-    // 테스트용 가짜 DAO (인메모리 리스트 사용)
     private class FakeHabitDao : HabitDao {
         private val habits = mutableListOf<HabitEntity>()
         override suspend fun insert(habit: HabitEntity) {
@@ -29,11 +28,11 @@ class HabitRepositoryTest {
         val fakeDao = FakeHabitDao()
         val repository = HabitRepository(fakeDao)
 
-        repository.addHabit("물 2L 마시기", 40)
+        repository.addHabit("물 2L 마시기")
         val habits = repository.getAllHabits()
 
         assertEquals(1, habits.size)
         assertEquals("물 2L 마시기", habits[0].name)
-        assertEquals(40, habits[0].rewardXp)
+        assertEquals(0, habits[0].rewardXp)  // Task 20: XP=0 저장
     }
 }

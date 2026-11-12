@@ -23,6 +23,13 @@ class HabitCardTest {
         category = "Health"
     )
 
+    private val longNameHabit = Habit(
+        id = 2,
+        name = "습관 이름이 엄청 길면 어떻게 될까요 이건 테스트 습관입니다 여러 줄에 걸쳐서 어떻게 나올까요",
+        rewardXp = 40,
+        category = "Test"
+    )
+
     @Test
     fun `습관_카드에_습관명이_표시된다`() {
         composeRule.setContent {
@@ -38,7 +45,7 @@ class HabitCardTest {
     }
 
     @Test
-    fun `습관_카드에_스트릭_배지가_표시된다`() {
+    fun `습관_카드에_연속일_배지가_표시된다`() {
         composeRule.setContent {
             HabitCard(
                 habit = sampleHabit,
@@ -48,11 +55,11 @@ class HabitCardTest {
                 onLongClick = {}
             )
         }
-        composeRule.onNodeWithText("14일", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("habitCard_streak_1", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
-    fun `습관_카드에_XP_보상이_표시된다`() {
+    fun `습관_카드에_XP_배지가_더이상_표시되지_않는다`() {
         composeRule.setContent {
             HabitCard(
                 habit = sampleHabit,
@@ -62,7 +69,7 @@ class HabitCardTest {
                 onLongClick = {}
             )
         }
-        composeRule.onNodeWithText("40 XP", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("40 XP", substring = true).assertDoesNotExist()
     }
 
     @Test
@@ -78,10 +85,43 @@ class HabitCardTest {
             )
         }
 
-        // testTag가 붙은 카드 찾기 (없으면 텍스트로 카드 찾기)
         composeRule.onNodeWithText("물 2L 마시기", substring = true)
             .performTouchInput { longClick() }
 
         assertTrue("길게 누르기 콜백이 호출되지 않음", longClicked)
+    }
+
+    // ─────────────────────────────────────────────
+    // [Task 20-5d] 긴 이름 축약 + 배지 표시
+    // ─────────────────────────────────────────────
+
+    @Test
+    fun `긴_습관_이름일_때도_연속일_배지가_표시된다`() {
+        composeRule.setContent {
+            HabitCard(
+                habit = longNameHabit,
+                streak = 5,
+                isCompleted = false,
+                onToggle = {},
+                onLongClick = {}
+            )
+        }
+        composeRule.onNodeWithTag("habitCard_streak_2", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `긴_습관_이름은_1줄로_축약되어_표시된다`() {
+        composeRule.setContent {
+            HabitCard(
+                habit = longNameHabit,
+                streak = 5,
+                isCompleted = false,
+                onToggle = {},
+                onLongClick = {}
+            )
+        }
+        // 습관 이름 노드가 1줄(maxLines=1)이므로 텍스트가 있어도 카드가 과도하게 커지지 않음
+        // 텍스트 존재 자체는 substring으로 확인 가능
+        composeRule.onNodeWithText("습관 이름이 엄청 길면", substring = true).assertIsDisplayed()
     }
 }

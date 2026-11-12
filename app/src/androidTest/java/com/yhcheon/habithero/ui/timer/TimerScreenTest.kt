@@ -17,7 +17,7 @@ class TimerScreenTest {
     fun `타이머화면에_제목과_카운트다운이_표시된다`() {
         composeRule.setContent {
             TimerScreen(
-                remainingSeconds = 300,  // 5분
+                remainingSeconds = 300,
                 isPaused = false,
                 onTogglePause = {},
                 onGiveUp = {},
@@ -51,7 +51,7 @@ class TimerScreenTest {
         var completed = false
         composeRule.setContent {
             TimerScreen(
-                remainingSeconds = 300,
+                remainingSeconds = 0,  // 5분 완주 상태 (canComplete = true)
                 isPaused = false,
                 onTogglePause = {},
                 onGiveUp = {},
@@ -61,5 +61,20 @@ class TimerScreenTest {
 
         composeRule.onNodeWithText("완료하고 조각 받기").performClick()
         assertTrue(completed)
+    }
+
+    @Test
+    fun `5분_미달_시_완료_버튼이_비활성_텍스트로_표시된다`() {
+        composeRule.setContent {
+            TimerScreen(
+                remainingSeconds = 300,  // 5분 시작
+                isPaused = false,
+                onTogglePause = {},
+                onGiveUp = {},
+                onComplete = {}
+            )
+        }
+
+        composeRule.onNodeWithText("5분 후 활성화").assertIsDisplayed()
     }
 }

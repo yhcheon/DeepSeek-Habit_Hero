@@ -16,40 +16,63 @@ class AddHabitDialogTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun `다이얼로그에_제목과_입력필드가_표시된다`() {
+    fun `다이얼로그에_제목과_습관이름_입력필드가_표시된다`() {
         composeRule.setContent {
             AddHabitDialog(
                 onDismiss = {},
-                onConfirm = { _, _ -> }
+                onConfirm = { _ -> }
             )
         }
 
         composeRule.onNodeWithText("새 습관 추가").assertIsDisplayed()
         composeRule.onNodeWithText("습관 이름").assertIsDisplayed()
-        composeRule.onNodeWithText("보상 XP").assertIsDisplayed()
     }
 
     @Test
-    fun `습관이름과_XP를_입력하고_추가시_콜백이_호출된다`() {
+    fun `보상_XP_입력필드가_더이상_표시되지_않는다`() {
+        composeRule.setContent {
+            AddHabitDialog(
+                onDismiss = {},
+                onConfirm = { _ -> }
+            )
+        }
+
+        composeRule.onNodeWithText("보상 XP").assertDoesNotExist()
+        composeRule.onNodeWithTag("habitXpField").assertDoesNotExist()
+    }
+
+    @Test
+    fun `습관이름을_입력하고_추가시_콜백이_호출된다`() {
         var savedName = ""
-        var savedXp = 0
 
         composeRule.setContent {
             AddHabitDialog(
                 onDismiss = {},
-                onConfirm = { name, xp ->
+                onConfirm = { name ->
                     savedName = name
-                    savedXp = xp
                 }
             )
         }
 
-        // testTag로 입력 필드 찾기 (placeholder 대신)
         composeRule.onNodeWithTag("habitNameField").performTextInput("명상 10분")
-        composeRule.onNodeWithTag("habitXpField").performTextInput("50")
         composeRule.onNodeWithText("추가").performClick()
 
         assertEquals("명상 10분", savedName)
-        assertEquals(50, savedXp)
+    }
+
+    @Test
+    fun `수정_모드에서_기존_이름이_표시된다`() {
+        composeRule.setContent {
+            AddHabitDialog(
+                initialName = "기존 습관",
+                title = "습관 수정",
+                confirmButtonText = "저장",
+                onDismiss = {},
+                onConfirm = { _ -> }
+            )
+        }
+
+        composeRule.onNodeWithText("기존 습관").assertIsDisplayed()
+        composeRule.onNodeWithText("저장").assertIsDisplayed()
     }
 }

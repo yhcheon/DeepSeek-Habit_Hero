@@ -28,6 +28,7 @@ import com.yhcheon.habithero.data.local.entity.HabitEntity
 import com.yhcheon.habithero.data.repository.HabitRepository
 import com.yhcheon.habithero.data.repository.ProfileRepository
 import com.yhcheon.habithero.domain.model.Habit
+import com.yhcheon.habithero.domain.usecase.CalculateHabitStreakUseCase
 import com.yhcheon.habithero.domain.usecase.CompleteHabitUseCase
 import com.yhcheon.habithero.domain.usecase.ShouldShowMorningPopupUseCase
 import com.yhcheon.habithero.ui.celebration.CelebrationScreen
@@ -54,7 +55,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private suspend fun loadHabits(db: HabitHeroDatabase, habitRepo: HabitRepository): List<Habit> {
+private suspend fun loadHabits(habitRepo: HabitRepository): List<Habit> {
     val entityList = habitRepo.getAllHabits()
     return entityList.map {
         Habit(
@@ -63,6 +64,18 @@ private suspend fun loadHabits(db: HabitHeroDatabase, habitRepo: HabitRepository
             rewardXp = it.rewardXp,
             category = it.category ?: ""
         )
+    }
+}
+
+private suspend fun calculateHabitStreaks(
+    db: HabitHeroDatabase,
+    habits: List<Habit>,
+    today: LocalDate
+): Map<Long, Int> {
+    return habits.associate { habit ->
+        val dates = db.checkInDao().getCheckedDatesByHabit(habit.id).toSet()
+        val streak = CalculateHabitStreakUseCase.execute(dates, today)
+        habit.id to streak
     }
 }
 
@@ -81,6 +94,7 @@ fun HabitHeroApp() {
     var onboardingCompleted by remember { mutableStateOf(false) }
     var habits by remember { mutableStateOf<List<Habit>>(emptyList()) }
     var completedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    var habitStreaks by remember { mutableStateOf<Map<Long, Int>>(emptyMap()) }
     var fragments by remember { mutableStateOf(0) }
     var xp by remember { mutableStateOf(0) }
     var streak by remember { mutableStateOf(0) }
@@ -91,17 +105,17 @@ fun HabitHeroApp() {
     var editTarget by remember { mutableStateOf<Habit?>(null) }
     var deleteTarget by remember { mutableStateOf<Habit?>(null) }
 
-    // ─── 화면 전환 상태 ───
     var showProfile by remember { mutableStateOf(false) }
     var showMorningPopup by remember { mutableStateOf(false) }
 
-    // ─── 즉석 습관 + 타이머 상태 ───
     var showQuickHabitDialog by remember { mutableStateOf(false) }
     var pendingHabitName by remember { mutableStateOf("") }
-    var pendingHabitXp by remember { mutableStateOf(0) }
     var showTimer by remember { mutableStateOf(false) }
     var showCelebration by remember { mutableStateOf(false) }
     var lastEarnedFragments by remember { mutableStateOf(0) }
+
+    var showTierEvolution by remember { mutableStateOf(false) }
+    var evolvedTier by remember { mutableStateOf("A") }
 
     LaunchedEffect(Unit) {
         val profile = profileRepo.getProfile()
@@ -115,14 +129,6 @@ fun HabitHeroApp() {
             level = profile.rank
             onboardingCompleted = true
 
-            // ─────────────────────────────────────────────
-            // [테스트 모드] 앱 실행 시마다 팝업 표시
-            // 향후 "하루 1회" 복원 시 아래 주석 해제 + 위 showMorningPopup = true 제거
-            // showMorningPopup = ShouldShowMorningPopupUseCase.execute(
-            //     lastOpenDate = profile.lastOpenDate,
-            //     today = LocalDate.now()
-            // )
-            // ─────────────────────────────────────────────
             @Suppress("UNUSED_EXPRESSION")
             ShouldShowMorningPopupUseCase
             showMorningPopup = true
@@ -132,13 +138,19 @@ fun HabitHeroApp() {
 
     LaunchedEffect(onboardingCompleted) {
         if (onboardingCompleted) {
-            habits = loadHabits(db, habitRepo)
-            val today = LocalDate.now().toString()
-            completedIds = db.checkInDao().getTodayCompletedHabitIds(today).toSet()
+            habits = loadHabits(habitRepo)
+            val today = LocalDate.now()
+            completedIds = db.checkInDao().getTodayCompletedHabitIds(today.toString()).toSet()
+            habitStreaks = calculateHabitStreaks(db, habits, today)
         }
     }
 
-    fun completeHabit(habitId: Long, onDone: (Int) -> Unit = {}) {
+    suspend fun refreshHabitsAndStreaks() {
+        habits = loadHabits(habitRepo)
+        habitStreaks = calculateHabitStreaks(db, habits, LocalDate.now())
+    }
+
+    fun completeHabit(habitId: Long, onDone: (Int, Boolean, String) -> Unit = { _, _, _ -> }) {
         scope.launch {
             val today = LocalDate.now().toString()
             val targetHabit = habits.find { it.id == habitId }
@@ -148,7 +160,7 @@ fun HabitHeroApp() {
                     profileFragments = fragments,
                     profileXp = xp,
                     profileStreak = streak,
-                    habitRewardXp = targetHabit.rewardXp,
+                    habitRewardXp = 0,
                     heroPassiveXpRate = 0.0,
                     todayFragmentCount = todayCount
                 )
@@ -165,20 +177,26 @@ fun HabitHeroApp() {
                     xp = result.newXp,
                     streak = result.newStreak
                 )
+                db.profileDao().updateTierRank(
+                    tier = result.newTier,
+                    rank = result.newRank
+                )
                 completedIds = completedIds + habitId
                 fragments = result.newTotalFragments
                 xp = result.newXp
                 streak = result.newStreak
-                onDone(result.fragmentEarned)
+                tier = result.newTier
+                level = result.newRank
+                habitStreaks = calculateHabitStreaks(db, habits, LocalDate.now())
+                onDone(result.fragmentEarned, result.tierEvolved, result.newTier)
             } else {
-                onDone(0)
+                onDone(0, false, tier)
             }
         }
     }
 
     fun dismissMorningPopup() {
         scope.launch {
-            // 테스트 모드에서도 markTodayOpened는 호출 (DB 기록 유지, 향후 복원 대비)
             profileRepo.markTodayOpened(LocalDate.now())
             showMorningPopup = false
         }
@@ -198,7 +216,6 @@ fun HabitHeroApp() {
                         nickname = inputNickname
                         hero = inputHero
                         onboardingCompleted = true
-                        // 온보딩 직후엔 팝업 안 띄움 (테스트 모드에서도 동일)
                         showMorningPopup = false
                     }
                 }
@@ -216,6 +233,15 @@ fun HabitHeroApp() {
                 onRemindLater = { dismissMorningPopup() }
             )
         }
+        showTierEvolution -> {
+            CelebrationScreen(
+                habitName = "🎉 ${evolvedTier}급 진화! 🎉",
+                fragmentEarned = 0,
+                onFinished = {
+                    showTierEvolution = false
+                }
+            )
+        }
         showCelebration -> {
             CelebrationScreen(
                 habitName = pendingHabitName,
@@ -223,7 +249,6 @@ fun HabitHeroApp() {
                 onFinished = {
                     showCelebration = false
                     pendingHabitName = ""
-                    pendingHabitXp = 0
                     lastEarnedFragments = 0
                 }
             )
@@ -234,18 +259,22 @@ fun HabitHeroApp() {
                 onGiveUp = {
                     showTimer = false
                     pendingHabitName = ""
-                    pendingHabitXp = 0
                 },
                 onComplete = {
                     scope.launch {
-                        habitRepo.addHabit(pendingHabitName, pendingHabitXp)
-                        habits = loadHabits(db, habitRepo)
+                        habitRepo.addHabit(pendingHabitName)
+                        habits = loadHabits(habitRepo)
                         val newHabit = habits.lastOrNull()
                         if (newHabit != null) {
-                            completeHabit(newHabit.id) { earned ->
+                            completeHabit(newHabit.id) { earned, evolved, newTier ->
                                 lastEarnedFragments = earned
                                 showTimer = false
-                                showCelebration = true
+                                if (evolved) {
+                                    evolvedTier = newTier
+                                    showTierEvolution = true
+                                } else {
+                                    showCelebration = true
+                                }
                             }
                         } else {
                             showTimer = false
@@ -279,12 +308,13 @@ fun HabitHeroApp() {
                 fragmentCap = 10,
                 habits = habits,
                 completedHabitIds = completedIds,
+                habitStreaks = habitStreaks,
                 onSettingsClick = { showProfile = true },
                 onStartTimerClick = { showQuickHabitDialog = true },
-                onAddHabit = { name, xpInput ->
+                onAddHabit = { name ->
                     scope.launch {
-                        habitRepo.addHabit(name, xpInput)
-                        habits = loadHabits(db, habitRepo)
+                        habitRepo.addHabit(name)
+                        refreshHabitsAndStreaks()
                     }
                 },
                 onToggleHabit = { habitId ->
@@ -296,15 +326,19 @@ fun HabitHeroApp() {
                                 db.checkInDao().deleteByHabitAndDate(habitId, today)
                                 val remainingCount = db.checkInDao().getTodayCheckInCount(today)
                                 val newFragments = minOf(remainingCount, 10)
-                                val newXp = (xp - targetHabit.rewardXp).coerceAtLeast(0)
-                                db.profileDao().updateStats(fragments = newFragments, xp = newXp, streak = streak)
+                                db.profileDao().updateStats(fragments = newFragments, xp = xp, streak = streak)
                                 completedIds = completedIds - habitId
                                 fragments = newFragments
-                                xp = newXp
+                                habitStreaks = calculateHabitStreaks(db, habits, LocalDate.now())
                             }
                         }
                     } else {
-                        completeHabit(habitId)
+                        completeHabit(habitId) { _, evolved, newTier ->
+                            if (evolved) {
+                                evolvedTier = newTier
+                                showTierEvolution = true
+                            }
+                        }
                     }
                 },
                 onHabitLongClick = { habitId ->
@@ -317,9 +351,8 @@ fun HabitHeroApp() {
                     title = "지금 5분만 하기",
                     confirmButtonText = "5분 시작",
                     onDismiss = { showQuickHabitDialog = false },
-                    onConfirm = { name, xpInput ->
+                    onConfirm = { name ->
                         pendingHabitName = name
-                        pendingHabitXp = xpInput
                         showQuickHabitDialog = false
                         showTimer = true
                     }
@@ -344,11 +377,10 @@ fun HabitHeroApp() {
             editTarget?.let { target ->
                 AddHabitDialog(
                     initialName = target.name,
-                    initialXp = target.rewardXp.toString(),
                     title = "습관 수정",
                     confirmButtonText = "저장",
                     onDismiss = { editTarget = null },
-                    onConfirm = { newName, newXp ->
+                    onConfirm = { newName ->
                         scope.launch {
                             db.habitDao().update(
                                 HabitEntity(
@@ -356,11 +388,11 @@ fun HabitHeroApp() {
                                     profileId = 1,
                                     name = newName,
                                     cycle = "DAILY",
-                                    rewardXp = newXp,
+                                    rewardXp = 0,
                                     category = target.category
                                 )
                             )
-                            habits = loadHabits(db, habitRepo)
+                            refreshHabitsAndStreaks()
                             editTarget = null
                         }
                     }
@@ -384,7 +416,7 @@ fun HabitHeroApp() {
                                             profileId = 1,
                                             name = target.name,
                                             cycle = "DAILY",
-                                            rewardXp = target.rewardXp,
+                                            rewardXp = 0,
                                             category = target.category
                                         )
                                     )
@@ -396,7 +428,7 @@ fun HabitHeroApp() {
                                         streak = streak
                                     )
                                     fragments = newFragments
-                                    habits = loadHabits(db, habitRepo)
+                                    refreshHabitsAndStreaks()
                                     deleteTarget = null
                                 }
                             }

@@ -5,23 +5,22 @@ import com.yhcheon.habithero.data.local.entity.HabitEntity
 
 /**
  * 습관 데이터 Repository
- * - UseCase가 직접 DAO에 접근하지 않고, 이 Repository를 통해 데이터에 접근합니다.
- * - 테스트 시 FakeHabitDao를 주입할 수 있도록 생성자로 Dao를 받습니다.
+ * - Task 20: XP 폐지에 따라 addHabit(name) 시그니처로 단순화
+ * - 내부적으로 rewardXp = 0 저장 (DB 필드는 마이그레이션 회피 위해 유지)
  */
 class HabitRepository(
     private val habitDao: HabitDao
 ) {
     /**
-     * 새 습관을 추가합니다.
+     * 새 습관을 추가합니다. (XP 미사용)
      * @param name 습관 이름
-     * @param rewardXp 완료 시 지급할 XP
      */
-    suspend fun addHabit(name: String, rewardXp: Int) {
+    suspend fun addHabit(name: String) {
         val habit = HabitEntity(
-            profileId = 1L,  // 단일 사용자
+            profileId = 1L,
             name = name,
             cycle = "DAILY",
-            rewardXp = rewardXp
+            rewardXp = 0
         )
         habitDao.insert(habit)
     }

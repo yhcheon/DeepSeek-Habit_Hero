@@ -5,10 +5,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * CompleteHabitUseCase 테스트 (RED - 최소 스펙 검증)
- * 프로덕션 코드가 없으므로 컴파일 실패가 정상입니다.
- */
 class CompleteHabitUseCaseTest {
 
     @Test
@@ -71,5 +67,89 @@ class CompleteHabitUseCaseTest {
             todayFragmentCount = 0
         )
         assertEquals(42, result.xpEarned)
+    }
+
+    // ─────────────────────────────────────────────
+    // [Task 20-3] Tier 진화 테스트
+    // ─────────────────────────────────────────────
+
+    @Test
+    fun `조각_99에서_완료시_100도달_Tier_B에서_A로_진화`() {
+        val result = CompleteHabitUseCase.execute(
+            profileFragments = 99,
+            profileXp = 0,
+            profileStreak = 0,
+            habitRewardXp = 40,
+            heroPassiveXpRate = 0.0,
+            todayFragmentCount = 0
+        )
+        assertEquals(100, result.newTotalFragments)
+        assertTrue(result.tierEvolved)
+        assertEquals("A", result.newTier)
+        assertEquals(0, result.newRank)
+    }
+
+    @Test
+    fun `조각_199에서_완료시_200도달_Tier_A에서_S로_진화`() {
+        val result = CompleteHabitUseCase.execute(
+            profileFragments = 199,
+            profileXp = 0,
+            profileStreak = 0,
+            habitRewardXp = 40,
+            heroPassiveXpRate = 0.0,
+            todayFragmentCount = 0
+        )
+        assertEquals(200, result.newTotalFragments)
+        assertTrue(result.tierEvolved)
+        assertEquals("S", result.newTier)
+        assertEquals(0, result.newRank)
+    }
+
+    @Test
+    fun `조각_299에서_완료시_300도달_Tier_S에서_신화로_진화`() {
+        val result = CompleteHabitUseCase.execute(
+            profileFragments = 299,
+            profileXp = 0,
+            profileStreak = 0,
+            habitRewardXp = 40,
+            heroPassiveXpRate = 0.0,
+            todayFragmentCount = 0
+        )
+        assertEquals(300, result.newTotalFragments)
+        assertTrue(result.tierEvolved)
+        assertEquals("MYTH", result.newTier)
+        assertEquals(0, result.newRank)
+    }
+
+    @Test
+    fun `조각_100에서_완료시_101도달_진화하지_않음_Rank_1`() {
+        val result = CompleteHabitUseCase.execute(
+            profileFragments = 100,
+            profileXp = 0,
+            profileStreak = 0,
+            habitRewardXp = 40,
+            heroPassiveXpRate = 0.0,
+            todayFragmentCount = 0
+        )
+        assertEquals(101, result.newTotalFragments)
+        assertFalse(result.tierEvolved)
+        assertEquals("A", result.newTier)
+        assertEquals(1, result.newRank)
+    }
+
+    @Test
+    fun `조각_50에서_완료시_51도달_진화하지_않음_Rank_51`() {
+        val result = CompleteHabitUseCase.execute(
+            profileFragments = 50,
+            profileXp = 0,
+            profileStreak = 0,
+            habitRewardXp = 40,
+            heroPassiveXpRate = 0.0,
+            todayFragmentCount = 0
+        )
+        assertEquals(51, result.newTotalFragments)
+        assertFalse(result.tierEvolved)
+        assertEquals("B", result.newTier)
+        assertEquals(51, result.newRank)
     }
 }

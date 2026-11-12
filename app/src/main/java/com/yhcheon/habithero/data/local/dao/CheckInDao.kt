@@ -16,7 +16,13 @@ interface CheckInDao {
     @Query("SELECT habitId FROM check_ins WHERE date = :date")
     suspend fun getTodayCompletedHabitIds(date: String): List<Long>
 
-    // ─── 추가: 언체크 시 오늘의 체크인 삭제 ───
     @Query("DELETE FROM check_ins WHERE habitId = :habitId AND date = :date")
     suspend fun deleteByHabitAndDate(habitId: Long, date: String)
+
+    /**
+     * 특정 습관의 모든 체크인 날짜 조회 (Task 20-5)
+     * - 습관별 연속일 계산에 사용
+     */
+    @Query("SELECT date FROM check_ins WHERE habitId = :habitId")
+    suspend fun getCheckedDatesByHabit(habitId: Long): List<String>
 }

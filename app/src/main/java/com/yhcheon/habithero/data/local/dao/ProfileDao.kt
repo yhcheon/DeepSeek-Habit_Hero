@@ -14,9 +14,6 @@ interface ProfileDao {
     @Query("SELECT * FROM profiles WHERE id = 1")
     suspend fun getProfile(): ProfileEntity?
 
-    /**
-     * 프로필 통계 업데이트 (조각 / XP / 스트릭)
-     */
     @Query("""
         UPDATE profiles
         SET totalFragments = :fragments,
@@ -26,21 +23,18 @@ interface ProfileDao {
     """)
     suspend fun updateStats(fragments: Int, xp: Int, streak: Int)
 
-    /**
-     * 닉네임만 업데이트 (PRF-01)
-     */
     @Query("UPDATE profiles SET nickname = :nickname WHERE id = 1")
     suspend fun updateNickname(nickname: String)
 
-    /**
-     * 히어로만 업데이트 (PRF-01, "RUNE" / "ARIA")
-     */
     @Query("UPDATE profiles SET hero = :hero WHERE id = 1")
     suspend fun updateHero(hero: String)
 
-    /**
-     * 마지막 접속일 업데이트 (ONB-02, YYYY-MM-DD)
-     */
     @Query("UPDATE profiles SET lastOpenDate = :date WHERE id = 1")
     suspend fun updateLastOpenDate(date: String)
+
+    /**
+     * Tier/Rank 갱신 (Task 20)
+     */
+    @Query("UPDATE profiles SET tier = :tier, rank = :rank WHERE id = 1")
+    suspend fun updateTierRank(tier: String, rank: Int)
 }
