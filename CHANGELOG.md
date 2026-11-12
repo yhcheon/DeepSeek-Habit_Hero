@@ -6,22 +6,33 @@
 
 ## [Unreleased]
 ### Added
+- **성장 시스템 재정의 (Task 20, 기획 확정)**:
+  - **1조각 = 1레벨** (문서 Q-B 유지)
+  - **100조각 누적 = Tier 진화** (B→A→S→신화), 진화 시 **Rank 0 리셋 + 누적 조각 유지** (문서 Q-A 유지)
+  - **XP 제거**: `xp` 필드 미사용(DB 마이그레이션 회피), 화면 표시 안 함
+  - **습관별 "연속 N일 달성"** 도입: `HabitCard`에 `🔥 연속 N일` 표시, `+40 XP` 배지 제거
+  - **전체 스트릭(`profile.streak`) 유지**: 모닝 팝업 요약 카드에 사용
+  - **미구현 (2차 고도화)**: 연속일 마일스톤 보상 (10일/50일/100일 등) — 향후 개발
 - **모닝 팝업 (ONB-02)**: 앱 실행 시 응원 카드 표시 (현재 테스트 모드 — 매번 표시)
   - `MorningPopupScreen`: 아바타 + Tier/Rank + 응원 문구 + Rank 진행 바(rank/100) + 오늘의 조각/연속 달성 요약 + CTA 2개
   - `ShouldShowMorningPopupUseCase`: lastOpenDate vs 오늘 비교 순수 함수 (경계값 6개 테스트)
   - `ProfileDao.updateLastOpenDate()` + `ProfileRepository.markTodayOpened()` 추가
   - MainActivity: 완전 재실행 시 팝업 표시 → CTA/Remind 시 `lastOpenDate = 오늘` 저장 후 대시보드
   - **테스트 모드**: 앱 완전 재실행 시마다 팝업 표시 (향후 "하루 1회"로 한 줄 복원 가능)
-  - 백그라운드 복귀 시 팝업 안 뜸 (의도된 동작 — 완전 재실행 시에만)
 - **프로필/설정 화면 (PRF-01)**: 닉네임 변경 + 히어로(RUNE/ARIA) 변경 + 재시작 유지
   - `ProfileScreen`: 닉네임 입력 필드(1~20자 검증) + 히어로 카드 2종 선택
   - 대시보드 App Bar 설정 아이콘 → 프로필 화면 진입
   - `ProfileDao.updateNickname()`, `ProfileDao.updateHero()` 추가
   - `ProfileRepository.updateNickname()`, `ProfileRepository.updateHero()` 위임 메서드 (빈 문자열/프로필 없음 방어)
-  - 저장 후 앱 재시작 시 변경 사항 유지 검증 완료
-- (예정) 스트릭 마일스톤 (7/14/30일 화염 보너스 XP)
 - (예정) 주간/월간 통계 리포트 (STAT-01)
 - (예정) 로컬 데이터 JSON 백업/복원 (STAT-02)
+
+### Changed
+- **성장 시스템 재정의**: XP(표시용 누적 경험치) 폐지 → 습관별 연속 달성일로 대체
+  - REQUIREMENTS §1.3 용어 정의 개정
+  - DETAILED_SPEC §4 RWD-01/ACT-02 개정
+  - DESIGN.md §7.1 HabitCard 배지 스펙 개정
+  - UI_SPEC §4 HabitCard 스펙 개정
 
 ## [1.0.0] - 2026-11-12
 ### Added
