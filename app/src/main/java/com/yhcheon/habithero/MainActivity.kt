@@ -30,7 +30,6 @@ import com.yhcheon.habithero.data.repository.ProfileRepository
 import com.yhcheon.habithero.domain.model.Habit
 import com.yhcheon.habithero.domain.usecase.CalculateHabitStreakUseCase
 import com.yhcheon.habithero.domain.usecase.CompleteHabitUseCase
-import com.yhcheon.habithero.domain.usecase.ShouldShowMorningPopupUseCase
 import com.yhcheon.habithero.ui.celebration.CelebrationScreen
 import com.yhcheon.habithero.ui.components.AddHabitDialog
 import com.yhcheon.habithero.ui.components.HabitActionSheet
@@ -126,8 +125,7 @@ fun HabitHeroApp() {
             level = profile.rank
             onboardingCompleted = true
 
-            @Suppress("UNUSED_EXPRESSION")
-            ShouldShowMorningPopupUseCase
+            // 모닝 팝업 — 앱 실행 시 무조건 매번 표시 (테스트 모드)
             showMorningPopup = true
         }
         isLoading = false
@@ -187,11 +185,14 @@ fun HabitHeroApp() {
         }
     }
 
-    fun dismissMorningPopup() {
-        scope.launch {
-            profileRepo.markTodayOpened(LocalDate.now())
-            showMorningPopup = false
-        }
+    // Start Quests!: 저장 안 함 → 앱 실행 시 매번 뜸
+    fun onStartQuests() {
+        showMorningPopup = false
+    }
+
+    // Remind Me Later: 저장 안 함 → 앱 실행 시 매번 뜸
+    fun onRemindMeLater() {
+        showMorningPopup = false
     }
 
     when {
@@ -221,8 +222,8 @@ fun HabitHeroApp() {
                 fragments = fragments,
                 fragmentCap = 10,
                 streak = streak,
-                onStart = { dismissMorningPopup() },
-                onRemindLater = { dismissMorningPopup() }
+                onStart = { onStartQuests() },
+                onRemindLater = { onRemindMeLater() }
             )
         }
         showTierEvolution -> {

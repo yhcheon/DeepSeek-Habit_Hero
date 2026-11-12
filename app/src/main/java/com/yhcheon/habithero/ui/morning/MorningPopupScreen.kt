@@ -14,12 +14,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * 모닝 팝업 (ONB-02)
- * - 당일 최초 진입 시 1회 표시
+ * - 앱 실행 시 매번 표시 (테스트 모드)
  * - 응원 카드 + 오늘의 조각/스트릭 요약 + Rank 진행 바
- * - Start Quests! / Remind Me Later (둘 다 오늘 다시 안 뜸)
+ * - Start Quests! / Remind Me Later (둘 다 오늘 다시 뜸)
  */
 @Composable
 fun MorningPopupScreen(
@@ -32,6 +35,11 @@ fun MorningPopupScreen(
     onStart: () -> Unit,
     onRemindLater: () -> Unit
 ) {
+    // 오늘 날짜 (예: 2026년 11월 12일 목요일)
+    val todayText = LocalDate.now().format(
+        DateTimeFormatter.ofPattern("yyyy년 M월 d일 EEEE", Locale.KOREAN)
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -91,6 +99,16 @@ fun MorningPopupScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
+
+                // 오늘 날짜 (2026년 11월 12일 목요일)
+                Text(
+                    text = todayText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.testTag("morning_date")
+                )
+
                 Text(
                     text = "오늘도 5분씩, 작은 실천으로\n히어로를 성장시켜 봐요!",
                     style = MaterialTheme.typography.bodyMedium,
@@ -98,7 +116,7 @@ fun MorningPopupScreen(
                     textAlign = TextAlign.Center
                 )
 
-                // XP 진행 바 (rank / 100)
+                // Rank 진행 바 (rank / 100)
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
